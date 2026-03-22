@@ -40,7 +40,8 @@ def reshape_data(df: pd.DataFrame) -> pd.DataFrame:
 # -----------------------------
 def prune_missing(df: pd.DataFrame, col_thresh=0.5, row_thresh=0.5) -> pd.DataFrame:
     df = df.loc[:, df.isnull().mean() < col_thresh]
-    df = df[df.isnull().mean(axis=1) < row_thresh]
+    mask = df.isnull().mean(axis=1) < row_thresh
+    df = df.loc[mask]
     return df
 
 
@@ -54,8 +55,8 @@ def impute_data(df: pd.DataFrame) -> pd.DataFrame:
     numeric_cols = df_imputed.select_dtypes(include=[np.number]).columns
 
     df_imputed[numeric_cols] = (
-        df_imputed.groupby("Country Name", group_keys=False)[numeric_cols]
-        .apply(lambda x: x.interpolate(method='linear', limit_direction='both'))
+        df_imputed.groupby("Country Name")[numeric_cols]
+        .transform(lambda x: x.interpolate(method='linear', limit_direction='both'))
     )
 
     # --- Group 2: Median + Iterative ---
