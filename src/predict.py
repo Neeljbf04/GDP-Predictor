@@ -34,18 +34,46 @@ def predict_gdp(input_df: pd.DataFrame):
 
     return y_pred
 
+def simulate_scenario(df: pd.DataFrame, changes: dict) -> pd.DataFrame:
+    """
+    Apply percentage changes to features.
+    
+    Example:
+    changes = {
+        "Exports of goods and services (current US$)": 0.05,  # +5%
+        "Imports of goods and services (current US$)": -0.02  # -2%
+    }
+    """
+    df_copy = df.copy()
 
+    for feature, change in changes.items():
+        if feature in df_copy.columns:
+            df_copy[feature] = df_copy[feature] * (1 + change)
+
+    return df_copy
+
+def predict_scenario(df: pd.DataFrame, changes: dict):
+    # baseline
+    base_pred = predict_gdp(df)
+
+    # modified data
+    df_new = simulate_scenario(df, changes)
+    new_pred = predict_gdp(df_new)
+
+    return base_pred, new_pred
 # -----------------------------
 # Example Usage
 # -----------------------------
 if __name__ == "__main__":
-
-    # Example: use last few rows
     df = preprocess_pipeline("data/raw/World_data_GDP.csv")
+    sample = df.sample(3, random_state=42)
 
-    sample = df.sample(5, random_state=42)
+    scenario = {
+        "Exports of goods and services (current US$)": 0.05,
+        "Imports of goods and services (current US$)": -0.02
+    }
 
-    predictions = predict_gdp(sample)
+    base, new = predict_scenario(sample, scenario)
 
-    print("Predicted GDP values:")
-    print(predictions)
+    print("\nBaseline GDP:", base)
+    print("Scenario GDP:", new)
