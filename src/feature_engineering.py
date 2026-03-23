@@ -131,8 +131,19 @@ def prepare_features(df: pd.DataFrame):
     X_scaled = scaler.fit_transform(X)
 
     feature_names = scaler.get_feature_names_out()
-
+    # Create DataFrame
     X_scaled_df = pd.DataFrame(X_scaled, columns=feature_names)
+
+    # 🔥 CLEAN FEATURE NAMES (IMPORTANT)
+    X_scaled_df.columns = [
+        col.replace(" ", "_")
+        .replace("(", "")
+        .replace(")", "")
+        .replace("%", "percent")
+        .replace("$", "usd")
+        .replace(",", "")
+        for col in X_scaled_df.columns
+    ]
 
     # Add country code back
     X_scaled_df["Country_Code"] = df["Country_Code"].values
