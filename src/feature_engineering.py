@@ -81,6 +81,16 @@ def get_feature_groups():
 def build_scaling_pipeline(df: pd.DataFrame):
     group_economic, group_percentage, group_social, group_financial = get_feature_groups()
 
+    def filter_existing(columns, df):
+        return [col for col in columns if col in df.columns]
+
+
+    group_economic = filter_existing(group_economic, df)
+    group_percentage = filter_existing(group_percentage, df)
+    group_social = filter_existing(group_social, df)
+    group_financial = filter_existing(group_financial, df)
+
+
     column_transformer = ColumnTransformer(transformers=[
         ('economic', PowerTransformer(), group_economic),
         ('percentage', StandardScaler(), group_percentage),
