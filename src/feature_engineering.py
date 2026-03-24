@@ -147,5 +147,14 @@ def prepare_features(df: pd.DataFrame):
 
     # Add country code back
     X_scaled_df["Country_Code"] = df["Country_Code"].values
+    # 🔥 Interaction Features
+    X_scaled_df["trade_balance"] = (
+        X_scaled_df["economic__Exports_of_goods_and_services_current_USusd"]
+        - X_scaled_df["economic__Imports_of_goods_and_services_current_USusd"]
+    )
 
+    X_scaled_df["per_capita_output"] = (
+        X_scaled_df["economic__Gross_capital_formation_current_USusd"]
+        / (X_scaled_df["social__Population_total"] + 1e-6)
+    )
     return X_scaled_df, y, scaler, encoder

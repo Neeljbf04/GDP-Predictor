@@ -91,7 +91,9 @@ def run_training_pipeline(data_path="data/raw/World_data_GDP.csv"):
     for f in force_features:
         if f in X.columns and f not in selected_features:
             selected_features.append(f)
-
+    if "Country_Code" in selected_features:
+        selected_features.remove("Country_Code")
+    
     X = X[selected_features]
     print("\nFinal Features Used:")
     print(selected_features)

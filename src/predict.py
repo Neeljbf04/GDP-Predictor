@@ -112,6 +112,18 @@ def predict_scenario(df: pd.DataFrame, changes: dict):
     new_pred = predict_gdp_from_features(X_new)
 
     return base_pred, new_pred
+
+def run_sensitivity(df, feature):
+
+    values = [-0.2, -0.1, 0, 0.1, 0.2]
+
+    print(f"\n📊 Sensitivity Analysis for {feature}")
+
+    for v in values:
+        scenario = {feature: v}
+        base, new = predict_scenario(df, scenario)
+
+        print(f"Change {v*100:+.0f}% → ΔGDP = {(new - base).mean():.2e}")
 # -----------------------------
 # Example Usage
 # -----------------------------
@@ -130,3 +142,7 @@ if __name__ == "__main__":
     print("Scenario GDP:", new)
     print("\n🔍 Difference:")
     print(new - base)
+    run_sensitivity(
+    sample,
+    "economic__Exports_of_goods_and_services_current_USusd"
+)
