@@ -7,6 +7,7 @@ from sklearn.metrics import r2_score, mean_squared_error
 
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error
 
 import xgboost as xgb
 import lightgbm as lgb
@@ -40,17 +41,22 @@ def train_models(X_train, X_test, y_train, y_test):
         model.fit(X_train, y_train)
 
         y_pred = model.predict(X_test)
+        print(f"\n{name} Sample Predictions:")
+        print("Pred:", y_pred[:5])
+        print("Actual:", y_test[:5].values)
 
+        mae = mean_absolute_error(y_test, y_pred)
         r2 = r2_score(y_test, y_pred)
         rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 
         results.append({
             "Model": name,
+            "MAE": mae,
             "R2 Score": r2,
             "RMSE": rmse
         })
 
-        print(f"{name} → R2: {r2:.4f}, RMSE: {rmse:.4f}")
+        print(f"{name} → MAE: {mae:.4f}, R2: {r2:.4f}, RMSE: {rmse:.4f}")
 
         if r2 > best_score:
             best_score = r2
