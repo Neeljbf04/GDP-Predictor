@@ -14,7 +14,9 @@ scaler = joblib.load("models/scaler.pkl")
 encoder = joblib.load("models/encoder.pkl")
 selected_features = joblib.load("models/features.pkl")
 
-
+def predict_gdp_from_features(X):
+    y_pred_log = model.predict(X)
+    return np.expm1(y_pred_log)
 # -----------------------------
 # Predict Function
 # -----------------------------
@@ -50,12 +52,51 @@ def simulate_scenario(df: pd.DataFrame, changes: dict):
     return df_copy
 
 def predict_scenario(df: pd.DataFrame, changes: dict):
-    # baseline
-    base_pred = predict_gdp(df)
-    
-    # modified data
-    df_new = simulate_scenario(df, changes)
-    new_pred = predict_gdp(df_new)
+
+    # Step 1: Convert raw data → features
+    X, _, _, _ = prepare_features(df)
+
+    print("\n🧠 Original Features:")
+    print(X.head())
+
+    # Step 2: Select trained features
+    X = X[selected_features]
+
+    # Step 3: Baseline prediction
+    base_pred = predict_gdp_from_features(X)
+
+    # Step 4: Apply scenario DIRECTLY on features
+    X_new = X.copy()
+
+    print("\n⚙️ Applying Scenario on Features:")
+    print("Changes:", changes)
+
+    # Step 4: Apply scenario on RAW data
+    df_new = df.copy()
+
+    print("\n⚙️ Applying Scenario on RAW data:")
+
+    for raw_feature, change in {
+        "Exports of goods and services (current US$)": changes.get(
+            "economic__Exports_of_goods_and_services_current_USusd", 0
+        ),
+        "Imports of goods and services (current US$)": changes.get(
+            "economic__Imports_of_goods_and_services_current_USusd", 0
+        )
+    }.items():
+        
+        if raw_feature in df_new.columns:
+            df_new[raw_feature] = df_new[raw_feature] * (1 + change)
+
+    # Recompute features AFTER change
+    X_new, _, _, _ = prepare_features(df_new)
+    X_new = X_new[selected_features] * (1 + change * 5)
+
+    print("\n📊 Modified Features:")
+    print(X_new.head())
+
+    # Step 5: New prediction
+    new_pred = predict_gdp_from_features(X_new)
 
     return base_pred, new_pred
 # -----------------------------
@@ -66,9 +107,9 @@ if __name__ == "__main__":
     sample = df.sample(3, random_state=42)
 
     scenario = {
-        "Exports of goods and services (current US$)": 0.05,
-        "Imports of goods and services (current US$)": -0.02
-    }
+    "economic__Exports_of_goods_and_services_current_USusd": 0.05,
+    "economic__Imports_of_goods_and_services_current_USusd": -0.02
+}
     
     base, new = predict_scenario(sample, scenario)
 

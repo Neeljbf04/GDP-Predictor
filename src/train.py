@@ -82,8 +82,19 @@ def run_training_pipeline(data_path="data/raw/World_data_GDP.csv"):
     print("🎯 Feature selection...")
     selected_features = select_features(X, y)
 
-    X = X[selected_features]
+    # 🔥 FORCE INCLUDE ECONOMIC DRIVERS
+    force_features = [
+        "economic__Exports_of_goods_and_services_current_USusd",
+        "economic__Imports_of_goods_and_services_current_USusd"
+    ]
 
+    for f in force_features:
+        if f in X.columns and f not in selected_features:
+            selected_features.append(f)
+
+    X = X[selected_features]
+    print("\nFinal Features Used:")
+    print(selected_features)
     print(f"✅ Using {len(selected_features)} features")
 
     # Train-test split
