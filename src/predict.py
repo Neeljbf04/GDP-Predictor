@@ -34,19 +34,11 @@ def predict_gdp(input_df: pd.DataFrame):
 
     return y_pred
 
-def simulate_scenario(df: pd.DataFrame, changes: dict) -> pd.DataFrame:
-    """
-    Apply percentage changes to features.
-    
-    Example:
-    changes = {
-        "Exports of goods and services (current US$)": 0.05,  # +5%
-        "Imports of goods and services (current US$)": -0.02  # -2%
-    }
-    """
+def simulate_scenario(df: pd.DataFrame, changes: dict, selected_features: list) -> pd.DataFrame:
     df_copy = df.copy()
 
     for feature, change in changes.items():
+        # Apply only if feature exists in original data
         if feature in df_copy.columns:
             df_copy[feature] = df_copy[feature] * (1 + change)
 
