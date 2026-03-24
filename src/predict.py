@@ -17,6 +17,16 @@ selected_features = joblib.load("models/features.pkl")
 def predict_gdp_from_features(X):
     y_pred_log = model.predict(X)
     return np.expm1(y_pred_log)
+
+def explain_scenario(X, X_new):
+    diff = X_new - X
+
+    print("\n📊 Feature Impact (Change):")
+    print(diff)
+
+    print("\n📈 Absolute Impact Ranking:")
+    impact = diff.abs().mean().sort_values(ascending=False)
+    print(impact)
 # -----------------------------
 # Predict Function
 # -----------------------------
@@ -91,6 +101,9 @@ def predict_scenario(df: pd.DataFrame, changes: dict):
     # Recompute features AFTER change
     X_new, _, _, _ = prepare_features(df_new)
     X_new = X_new[selected_features] * (1 + change * 5)
+    
+    # 🔍 Explain impact
+    explain_scenario(X, X_new)
 
     print("\n📊 Modified Features:")
     print(X_new.head())

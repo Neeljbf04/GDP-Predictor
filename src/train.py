@@ -109,6 +109,19 @@ def run_training_pipeline(data_path="data/raw/World_data_GDP.csv"):
 
     print(f"\n🏆 Best Model: {best_model_name}")
 
+    # 🔍 Feature Importance
+    if hasattr(best_model, "feature_importances_"):
+        import matplotlib.pyplot as plt
+
+        importances = best_model.feature_importances_
+        features = selected_features
+
+        sorted_idx = np.argsort(importances)
+
+        plt.figure()
+        plt.barh(np.array(features)[sorted_idx], importances[sorted_idx])
+        plt.title("Feature Importance")
+        plt.show()
     # -----------------------------
     # 3. Save Artifacts
     # -----------------------------
