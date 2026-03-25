@@ -129,7 +129,7 @@ def predict_scenario(df: pd.DataFrame, changes: dict):
 
     print("\n📊 Modified Features:")
     print(X_new.head())
-    
+
     if "country_cluster" in X.columns:
         print("\n🌍 Country Clusters:")
         print(X["country_cluster"].values)
@@ -150,6 +150,65 @@ def run_sensitivity(df, feature):
         base, new = predict_scenario(df, scenario)
 
         print(f"Change {v*100:+.0f}% → ΔGDP = {(new - base).mean():.2e}")
+
+def get_top_drivers(X, model, top_n=5):
+
+    if hasattr(model, "feature_importances_"):
+        importances = model.feature_importances_
+    else:
+        print("Model does not support feature importance")
+        return
+
+    feature_importance = pd.DataFrame({
+        "feature": X.columns,
+        "importance": importances
+    })
+
+    feature_importance = feature_importance.sort_values(
+        by="importance", ascending=False
+    )
+
+    print("\n🔥 Top GDP Drivers:")
+    print(feature_importance.head(top_n))
+    
+def find_best_policy(df, features_to_test):
+
+    print("\n🚀 Finding Best Policy...")
+
+    results = []
+
+    for feature in features_to_test:
+
+        scenario = {feature: 0.1}  # +10% change
+
+        base, new = predict_scenario(df, scenario)
+
+        impact = (new - base).mean()
+
+        results.append({
+            "feature": feature,
+            "impact": impact
+        })
+
+    results_df = pd.DataFrame(results)
+    results_df = results_df.sort_values(by="impact", ascending=False)
+
+    print("\n🏆 Best Policy Options:")
+    print(results_df)
+
+    return results_df
+
+def run_multi_scenario(df, scenario):
+
+    print("\n🌍 Running Multi-variable Scenario...")
+
+    base, new = predict_scenario(df, scenario)
+
+    print("\n📊 Multi Scenario Result:")
+    print("Change:", scenario)
+    print("ΔGDP:", (new - base))
+
+    return base, new
 # -----------------------------
 # Example Usage
 # -----------------------------
@@ -172,3 +231,31 @@ if __name__ == "__main__":
     sample,
     "economic__Exports_of_goods_and_services_current_USusd"
 )
+    # =============================
+    # 🔥 PHASE 11: DECISION INTELLIGENCE
+    # =============================
+
+    # 1. Top Drivers
+    X, _, _, _ = prepare_features(sample)
+    X = X[selected_features]
+    get_top_drivers(X, model)
+
+
+    # 2. Best Policy Finder
+    features_to_test = [
+        "economic__Exports_of_goods_and_services_current_USusd",
+        "economic__Imports_of_goods_and_services_current_USusd",
+        "economic__Gross_capital_formation_current_USusd",
+        "social__Individuals_using_the_Internet_percent_of_population"
+    ]
+
+    find_best_policy(sample, features_to_test)
+
+
+    # 3. Multi-variable Scenario
+    multi_scenario = {
+        "economic__Exports_of_goods_and_services_current_USusd": 0.1,
+        "economic__Gross_capital_formation_current_USusd": 0.05
+    }
+
+    run_multi_scenario(sample, multi_scenario)
