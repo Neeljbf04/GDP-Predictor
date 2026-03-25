@@ -17,7 +17,8 @@ import joblib
 from src.data_preprocessing import preprocess_pipeline
 from src.feature_engineering import prepare_features
 from src.feature_selection import select_features
-
+from sklearn.metrics import mean_absolute_percentage_error
+from sklearn.model_selection import cross_val_score
 
 # -----------------------------
 # 1. Train Models
@@ -40,23 +41,35 @@ def train_models(X_train, X_test, y_train, y_test):
     for name, model in models.items():
         model.fit(X_train, y_train)
 
+        cv_scores = cross_val_score(model, X_train, y_train, cv=5, scoring='r2')
+
+        print(f"{name} → CV R2: {cv_scores.mean():.4f}")
+
         y_pred = model.predict(X_test)
         print(f"\n{name} Sample Predictions:")
         print("Pred:", y_pred[:5])
         print("Actual:", y_test[:5].values)
+        residuals = y_test - y_pred
+
+        print(f"{name} Residual Mean: {residuals.mean():.4f}")
+        print(f"{name} Residual Std: {residuals.std():.4f}")
 
         mae = mean_absolute_error(y_test, y_pred)
         r2 = r2_score(y_test, y_pred)
         rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+        mape = mean_absolute_percentage_error(
+        np.expm1(y_test), np.expm1(y_pred)
+    )
 
         results.append({
             "Model": name,
             "MAE": mae,
             "R2 Score": r2,
-            "RMSE": rmse
+            "RMSE": rmse,
+            "MAPE": mape
         })
 
-        print(f"{name} → MAE: {mae:.4f}, R2: {r2:.4f}, RMSE: {rmse:.4f}")
+        print(f"{name} → MAE: {mae:.4f}, R2: {r2:.4f}, RMSE: {rmse:.4f}, MAPE: {mape:.4f}")
 
         if r2 > best_score:
             best_score = r2
