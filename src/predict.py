@@ -105,6 +105,16 @@ def predict_scenario(df: pd.DataFrame, changes: dict):
     # 🔍 Explain impact
     explain_scenario(X, X_new)
 
+    # =============================
+    # 🔍 ECONOMIC CONSISTENCY CHECK
+    # =============================
+    print("\n🧠 Economic Consistency Check:")
+
+    for col in ["trade_contribution", "economic_activity", "gdp_proxy_signal"]:
+        if col in X_new.columns:
+            print(f"{col}:")
+            print(X_new[col].values)
+
     print("\n📊 Modified Features:")
     print(X_new.head())
 

@@ -147,6 +147,36 @@ def prepare_features(df: pd.DataFrame):
 
     # Add country code back
     X_scaled_df["Country_Code"] = df["Country_Code"].values
+    # =============================
+    # 🔥 PHASE 6: ECONOMIC CONSISTENCY FEATURES
+    # =============================
+
+    # Trade contribution (Exports - Imports)
+    if (
+        "economic__Exports_of_goods_and_services_current_USusd" in X_scaled_df.columns
+        and "economic__Imports_of_goods_and_services_current_USusd" in X_scaled_df.columns
+    ):
+        X_scaled_df["trade_contribution"] = (
+            X_scaled_df["economic__Exports_of_goods_and_services_current_USusd"]
+            - X_scaled_df["economic__Imports_of_goods_and_services_current_USusd"]
+        )
+
+    # Economic activity (Production side)
+    if (
+        "economic__Agriculture_forestry_and_fishing_value_added_current_USusd" in X_scaled_df.columns
+        and "economic__Gross_capital_formation_current_USusd" in X_scaled_df.columns
+    ):
+        X_scaled_df["economic_activity"] = (
+            X_scaled_df["economic__Agriculture_forestry_and_fishing_value_added_current_USusd"]
+            + X_scaled_df["economic__Gross_capital_formation_current_USusd"]
+        )
+
+    # GDP proxy signal (structure-aware feature)
+    if "economic_activity" in X_scaled_df.columns and "trade_contribution" in X_scaled_df.columns:
+        X_scaled_df["gdp_proxy_signal"] = (
+            X_scaled_df["economic_activity"]
+            + X_scaled_df["trade_contribution"]
+    )
     # 🔥 Interaction Features
     X_scaled_df["trade_balance"] = (
         X_scaled_df["economic__Exports_of_goods_and_services_current_USusd"]
