@@ -86,17 +86,29 @@ def predict_scenario(df: pd.DataFrame, changes: dict):
 
     print("\n⚙️ Applying Scenario on RAW data:")
 
-    for raw_feature, change in {
-        "Exports of goods and services (current US$)": changes.get(
-            "economic__Exports_of_goods_and_services_current_USusd", 0
-        ),
-        "Imports of goods and services (current US$)": changes.get(
-            "economic__Imports_of_goods_and_services_current_USusd", 0
-        )
-    }.items():
-        
-        if raw_feature in df_new.columns:
-            df_new[raw_feature] = df_new[raw_feature] * (1 + change)
+    # 🔥 Dynamic mapping from engineered → raw
+    feature_map = {
+        "economic__Exports_of_goods_and_services_current_USusd":
+            "Exports of goods and services (current US$)",
+
+        "economic__Imports_of_goods_and_services_current_USusd":
+            "Imports of goods and services (current US$)"
+    }
+
+    df_new = df.copy()
+
+    print("\n⚙️ Applying Scenario on RAW data:")
+
+    for eng_feature, change in changes.items():
+
+        if eng_feature in feature_map:
+            raw_feature = feature_map[eng_feature]
+
+            if raw_feature in df_new.columns:
+                df_new[raw_feature] = df_new[raw_feature] * (1 + change)
+    
+    print("\n🔍 RAW DATA CHANGE CHECK:")
+    print(df_new.head())
 
     # Recompute features AFTER change
     X_new, _, _, _ = prepare_features(df_new)
