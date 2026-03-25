@@ -183,8 +183,19 @@ def prepare_features(df: pd.DataFrame):
         - X_scaled_df["economic__Imports_of_goods_and_services_current_USusd"]
     )
 
+    # 🔥 NORMALIZED PER CAPITA OUTPUT
     X_scaled_df["per_capita_output"] = (
         X_scaled_df["economic__Gross_capital_formation_current_USusd"]
         / (X_scaled_df["social__Population_total"] + 1e-6)
     )
+
+    # Clip extreme values (VERY IMPORTANT)
+    X_scaled_df["per_capita_output"] = np.clip(
+        X_scaled_df["per_capita_output"], -5, 5
+    )
+    # Normalize economic consistency features
+    for col in ["trade_contribution", "economic_activity"]:
+        if col in X_scaled_df.columns:
+            X_scaled_df[col] = np.clip(X_scaled_df[col], -5, 5)
+            
     return X_scaled_df, y, scaler, encoder
