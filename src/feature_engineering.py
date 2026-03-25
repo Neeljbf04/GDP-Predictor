@@ -197,5 +197,25 @@ def prepare_features(df: pd.DataFrame):
     for col in ["trade_contribution", "economic_activity"]:
         if col in X_scaled_df.columns:
             X_scaled_df[col] = np.clip(X_scaled_df[col], -5, 5)
-            
+    # =============================
+    # 🔥 PHASE 10: COUNTRY CLUSTERING
+    # =============================
+
+    from sklearn.cluster import KMeans
+
+    # Select features for clustering
+    cluster_features = [
+        "economic__Exports_of_goods_and_services_current_USusd",
+        "economic__Imports_of_goods_and_services_current_USusd",
+        "social__Urban_population"
+    ]
+
+    available_features = [f for f in cluster_features if f in X_scaled_df.columns]
+
+    if len(available_features) >= 2:
+        kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+
+        clusters = kmeans.fit_predict(X_scaled_df[available_features])
+
+        X_scaled_df["country_cluster"] = clusters
     return X_scaled_df, y, scaler, encoder

@@ -114,5 +114,8 @@ def select_features(X: pd.DataFrame, y: pd.Series, top_n=12):
         .head(top_n)
         .index.tolist()
     )
+    # 🔥 FORCE INCLUDE COUNTRY CLUSTER
+    if "country_cluster" in X.columns and "country_cluster" not in final_features:
+        final_features.append("country_cluster")
 
     return final_features

@@ -129,6 +129,10 @@ def predict_scenario(df: pd.DataFrame, changes: dict):
 
     print("\n📊 Modified Features:")
     print(X_new.head())
+    
+    if "country_cluster" in X.columns:
+        print("\n🌍 Country Clusters:")
+        print(X["country_cluster"].values)
 
     # Step 5: New prediction
     new_pred = predict_gdp_from_features(X_new)
