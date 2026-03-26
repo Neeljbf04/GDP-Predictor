@@ -170,16 +170,32 @@ def get_top_drivers(X, model, top_n=5):
 
     print("\n🔥 Top GDP Drivers:")
     print(feature_importance.head(top_n))
-    
+
 def find_best_policy(df, features_to_test):
 
-    print("\n🚀 Finding Best Policy...")
+    # 🔥 Map engineered → raw features
+    feature_map = {
+        "economic__Exports_of_goods_and_services_current_USusd":
+            "Exports of goods and services (current US$)",
+
+        "economic__Imports_of_goods_and_services_current_USusd":
+            "Imports of goods and services (current US$)",
+
+        "economic__Gross_capital_formation_current_USusd":
+            "Gross capital formation (current US$)",
+
+        "social__Individuals_using_the_Internet_percent_of_population":
+            "Individuals using the Internet (% of population)"
+    }
 
     results = []
 
     for feature in features_to_test:
 
-        scenario = {feature: 0.1}  # +10% change
+        if feature in feature_map:
+            scenario = {feature: 0.1}
+        else:
+            continue
 
         base, new = predict_scenario(df, scenario)
 
