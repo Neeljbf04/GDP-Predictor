@@ -92,7 +92,13 @@ def predict_scenario(df: pd.DataFrame, changes: dict):
             "Exports of goods and services (current US$)",
 
         "economic__Imports_of_goods_and_services_current_USusd":
-            "Imports of goods and services (current US$)"
+            "Imports of goods and services (current US$)",
+
+        "economic__Gross_capital_formation_current_USusd":
+            "Gross capital formation (current US$)",
+
+        "social__Individuals_using_the_Internet_percent_of_population":
+            "Individuals using the Internet (% of population)"
     }
 
     df_new = df.copy()
@@ -112,7 +118,7 @@ def predict_scenario(df: pd.DataFrame, changes: dict):
 
     # Recompute features AFTER change
     X_new, _, _, _ = prepare_features(df_new)
-    X_new = X_new[selected_features] * (1 + change * 5)
+    X_new = X_new[selected_features]
     
     # 🔍 Explain impact
     explain_scenario(X, X_new)

@@ -197,6 +197,7 @@ def prepare_features(df: pd.DataFrame):
     for col in ["trade_contribution", "economic_activity"]:
         if col in X_scaled_df.columns:
             X_scaled_df[col] = np.clip(X_scaled_df[col], -5, 5)
+    
     # =============================
     # 🔥 PHASE 10: COUNTRY CLUSTERING
     # =============================
@@ -215,7 +216,20 @@ def prepare_features(df: pd.DataFrame):
     if len(available_features) >= 2:
         kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
 
-        clusters = kmeans.fit_predict(X_scaled_df[available_features])
+        # =============================
+        # HANDLE MISSING VALUES FOR CLUSTERING
+        # =============================
+
+        cluster_data = X_scaled_df[available_features].copy()
+        
+        # Fill NaN with column mean
+        cluster_data = cluster_data.fillna(cluster_data.mean())
+
+        # If still NaN (all values missing), fill with 0
+        cluster_data = cluster_data.fillna(0)
+
+        clusters = kmeans.fit_predict(cluster_data)
+        X_scaled_df["country_cluster"] = clusters
 
         X_scaled_df["country_cluster"] = clusters
     return X_scaled_df, y, scaler, encoder
