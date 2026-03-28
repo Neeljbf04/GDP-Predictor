@@ -6,6 +6,7 @@ from sklearn.preprocessing import (
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from typing import Tuple,cast
+from src.clustering import apply_cluster
 
 
 # -----------------------------
@@ -108,7 +109,7 @@ def build_scaling_pipeline(df: pd.DataFrame):
 # -----------------------------
 # 5. Prepare Final Features
 # -----------------------------
-def prepare_features(df: pd.DataFrame):
+def prepare_features(df: pd.DataFrame, scaler=None, fit=False):
     df = transform_target(df)
 
     df, encoder = encode_country(df)
@@ -126,9 +127,12 @@ def prepare_features(df: pd.DataFrame):
     X=cast(pd.DataFrame, X)
 
     # Build scaling pipeline
-    scaler = build_scaling_pipeline(df)
-
-    X_scaled = scaler.fit_transform(X)
+    if scaler is None:
+        scaler = build_scaling_pipeline(df)
+    if fit:
+        X_scaled = scaler.fit_transform(X)
+    else:
+        X_scaled = scaler.transform(X)
 
     feature_names = scaler.get_feature_names_out()
     # Create DataFrame
@@ -191,20 +195,17 @@ def prepare_features(df: pd.DataFrame):
 
     # Clip extreme values (VERY IMPORTANT)
     X_scaled_df["per_capita_output"] = np.clip(
-        X_scaled_df["per_capita_output"], -5, 5
+        X_scaled_df["per_capita_output"], -10, 10
     )
     # Normalize economic consistency features
     for col in ["trade_contribution", "economic_activity"]:
         if col in X_scaled_df.columns:
-            X_scaled_df[col] = np.clip(X_scaled_df[col], -5, 5)
+            X_scaled_df[col] = np.clip(X_scaled_df[col], -10, 10)
     
     # =============================
     # 🔥 PHASE 10: COUNTRY CLUSTERING
     # =============================
 
-    from sklearn.cluster import KMeans
-
-    # Select features for clustering
     cluster_features = [
         "economic__Exports_of_goods_and_services_current_USusd",
         "economic__Imports_of_goods_and_services_current_USusd",
@@ -214,22 +215,12 @@ def prepare_features(df: pd.DataFrame):
     available_features = [f for f in cluster_features if f in X_scaled_df.columns]
 
     if len(available_features) >= 2:
-        kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
-
-        # =============================
-        # HANDLE MISSING VALUES FOR CLUSTERING
-        # =============================
-
         cluster_data = X_scaled_df[available_features].copy()
+        cluster_data = cluster_data.fillna(cluster_data.mean()).fillna(0)
+
+        try:
+            X_scaled_df["country_cluster"] = apply_cluster(cluster_data)
+        except:
+            X_scaled_df["country_cluster"] = 0
         
-        # Fill NaN with column mean
-        cluster_data = cluster_data.fillna(cluster_data.mean())
-
-        # If still NaN (all values missing), fill with 0
-        cluster_data = cluster_data.fillna(0)
-
-        clusters = kmeans.fit_predict(cluster_data)
-        X_scaled_df["country_cluster"] = clusters
-
-        X_scaled_df["country_cluster"] = clusters
     return X_scaled_df, y, scaler, encoder

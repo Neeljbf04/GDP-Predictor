@@ -64,7 +64,7 @@ def simulate_scenario(df: pd.DataFrame, changes: dict):
 def predict_scenario(df: pd.DataFrame, changes: dict):
 
     # Step 1: Convert raw data → features
-    X, _, _, _ = prepare_features(df)
+    X, _, _, _ = prepare_features(df, scaler=scaler, fit=False)
 
     print("\n🧠 Original Features:")
     print(X.head())
@@ -76,7 +76,6 @@ def predict_scenario(df: pd.DataFrame, changes: dict):
     base_pred = predict_gdp_from_features(X)
 
     # Step 4: Apply scenario DIRECTLY on features
-    X_new = X.copy()
 
     print("\n⚙️ Applying Scenario on Features:")
     print("Changes:", changes)
@@ -98,12 +97,15 @@ def predict_scenario(df: pd.DataFrame, changes: dict):
             "Gross capital formation (current US$)",
 
         "social__Individuals_using_the_Internet_percent_of_population":
-            "Individuals using the Internet (% of population)"
+            "Individuals using the Internet (% of population)",
+
+        "social__Urban_population":
+            "Urban population",
+
+        "economic__Total_reserves_includes_gold_current_USusd":
+            "Total reserves (includes gold, current US$)"
     }
 
-    df_new = df.copy()
-
-    print("\n⚙️ Applying Scenario on RAW data:")
 
     for eng_feature, change in changes.items():
 
@@ -111,13 +113,15 @@ def predict_scenario(df: pd.DataFrame, changes: dict):
             raw_feature = feature_map[eng_feature]
 
             if raw_feature in df_new.columns:
-                df_new[raw_feature] = df_new[raw_feature] * (1 + change)
+                sensitivity = 1.5  # you can tune this
+
+                df_new[raw_feature] = df_new[raw_feature] * (1 + change * sensitivity)
     
     print("\n🔍 RAW DATA CHANGE CHECK:")
     print(df_new.head())
 
     # Recompute features AFTER change
-    X_new, _, _, _ = prepare_features(df_new)
+    X_new, _, _, _ = prepare_features(df_new, scaler=scaler, fit=False)
     X_new = X_new[selected_features]
     
     # 🔍 Explain impact
@@ -191,7 +195,13 @@ def find_best_policy(df, features_to_test):
             "Gross capital formation (current US$)",
 
         "social__Individuals_using_the_Internet_percent_of_population":
-            "Individuals using the Internet (% of population)"
+            "Individuals using the Internet (% of population)",
+
+        "social__Urban_population":
+            "Urban population",
+
+        "economic__Total_reserves_includes_gold_current_USusd":
+            "Total reserves (includes gold, current US$)"
     }
 
     results = []

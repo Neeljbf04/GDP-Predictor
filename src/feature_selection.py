@@ -23,7 +23,7 @@ def mutual_info_selection(X: pd.DataFrame, y: pd.Series):
     mi = mutual_info_regression(X, y)
     mi_series = pd.Series(mi, index=X.columns)
 
-    threshold = mi_series.mean()
+    threshold = mi_series.quantile(0.7)
     selected = mi_series[mi_series > threshold].index.tolist()
 
     return selected

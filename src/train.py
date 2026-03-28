@@ -19,6 +19,7 @@ from src.feature_engineering import prepare_features
 from src.feature_selection import select_features
 from sklearn.metrics import mean_absolute_percentage_error
 from sklearn.model_selection import cross_val_score
+from src.clustering import train_cluster
 
 # -----------------------------
 # 1. Train Models
@@ -90,7 +91,7 @@ def run_training_pipeline(data_path="data/raw/World_data_GDP.csv"):
     df = preprocess_pipeline(data_path)
 
     print("⚙️ Feature engineering...")
-    X, y, scaler, encoder = prepare_features(df)
+    X, y, scaler, encoder = prepare_features(df, fit=True)
 
     print("🎯 Feature selection...")
     selected_features = select_features(X, y)
@@ -124,6 +125,16 @@ def run_training_pipeline(data_path="data/raw/World_data_GDP.csv"):
 
     print(f"\n🏆 Best Model: {best_model_name}")
 
+    cluster_features = [
+        "economic__Exports_of_goods_and_services_current_USusd",
+        "economic__Imports_of_goods_and_services_current_USusd",
+        "social__Urban_population"
+    ]
+
+    available_cluster_features = [f for f in cluster_features if f in X.columns]
+
+    if len(available_cluster_features) >= 2:
+        train_cluster(X[available_cluster_features])
     # 🔍 Feature Importance
     if hasattr(best_model, "feature_importances_"):
         import matplotlib.pyplot as plt
