@@ -16,10 +16,6 @@ venv/
 data/raw/
 data/processed/
 
-# Models
-models/
-*.pkl
-
 # Logs
 *.log
 
